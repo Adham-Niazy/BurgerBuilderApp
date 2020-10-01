@@ -19,7 +19,13 @@ const INGREDIENT_PRICES = {
 class BurgerBuilder extends Component {
 
     state = {
-        ingredients: null,
+        // ingredients: null,   
+        ingredients: {
+            salad: 0,
+            bacon: 0,
+            cheese: 0,
+            meat: 1
+        },
         totalPrice: 4,
         purchasable: false,
         purchasing: false,
@@ -27,17 +33,17 @@ class BurgerBuilder extends Component {
         error: false
     }
 
-    componentDidMount() {
-        OrderInstance.get('/ingredients')
-                    .then(response => {
-                        this.setState({ingredients: response.data})
-                    })
-                    .catch(error => {
-                        this.setState({error: true});
-                    })
-    }
+    // componentDidMount() {
+    //     OrderInstance.get('/ingredients.json')
+    //                 .then(response => {
+    //                     this.setState({ingredients: response.data})
+    //                 })
+    //                 .catch(error => {
+    //                     this.setState({error: true});
+    //                 })
+    // }
 
-    updatePurchaseState= Ingredient => {
+    updatePurchaseState = Ingredient => {
         const sum = Object.keys(Ingredient).map(igKey => Ingredient[igKey]).reduce((curr, el) => { return curr + el }, 0);
         this.setState({purchasable: sum > 0 })
     }
@@ -82,29 +88,16 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
-        // alert('PURCHASED!!');
-        this.setState({loading: true});
-        const PurchasedOrder = {
-            ingredients: this.state.ingredients,
-            price: this.state.totalPrice,
-            customer: {
-                name: 'Adham Niazy',
-                address: {
-                    street: 'Fardy street',
-                    zipCode: '1234',
-                    country: 'Egypt'
-                },
-                email: 'Test@text.co'
-            },
-            deliveryMethod: 'fastest'
+        const queryParams = [];
+        for ( let i in this.state.ingredients ) {
+            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]));
         }
-        OrderInstance.post('/orders.json', PurchasedOrder)
-                .then(response => {
-                    this.setState({ loading: false, purchasing: false });
-                })
-                .catch(error => {
-                    this.setState({ loading: false, purchasing: false });
-                });
+        queryParams.push('price=' + this.state.totalPrice.toFixed(2));
+        const queryString = queryParams.join('&');
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryString
+        });
     }
 
     render() {
