@@ -48,6 +48,7 @@ class ContactData extends Component {
                 value: '',
                 validation: {
                     required: true,
+                    isNumeric: true,
                     minLength: 4,
                     maxLength: 4
                 },
@@ -75,7 +76,8 @@ class ContactData extends Component {
                 },
                 value: '',
                 validation: {
-                    required: true
+                    required: true,
+                    isEmail: true
                 },
                 valid: false,
                 touched: false
@@ -104,11 +106,11 @@ class ContactData extends Component {
         }
         const PurchasedOrder = {
             ingredients: this.props.ings,
-            price: this.props.price,
-            orderData: formData
-            
+            price: this.props.price.toFixed(2),
+            orderData: formData,
+            userId: this.props.userId
         }
-        this.props.onPurchasingBurger(PurchasedOrder);
+        this.props.onPurchasingBurger(PurchasedOrder, this.props.token);
     }
 
     checkValidity(value, rules) {
@@ -121,6 +123,14 @@ class ContactData extends Component {
         }
         if ( rules.maxLength ) {
             isValid = value.length <= rules.maxLength && isValid;
+        }
+        if ( rules.isEmail ) {
+            const pattern = /^([a-zA-Z0-9]+)@([a-zA-Z0-9]+)\.([a-zA-Z]{2,5})$/;
+            isValid = pattern.test(value) && isValid;
+        }
+        if ( rules.isNumeric ) {
+            const pattern = /^\d+$/;
+            isValid = pattern.test(value) && isValid;
         }
         return isValid;
     }
@@ -186,13 +196,15 @@ const mapStateToProps = state => {
     return {
         ings: state.burgerBuilder.ingredients,
         price: state.burgerBuilder.totalPrice,
-        loading: state.order.loading
+        loading: state.order.loading,
+        token: state.auth.token,
+        userId: state.auth.userId
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onPurchasingBurger: (orderData) => dispatch(actions.purchaseBurger(orderData))
+        onPurchasingBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token))
     };
 }
 

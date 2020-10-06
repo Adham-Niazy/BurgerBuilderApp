@@ -1,21 +1,67 @@
-import React from 'react';
-import {Route, Switch} from 'react-router-dom';
+import React, { Component } from 'react';
+import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import Layout from './components/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
-import Checkout from './containers/Checkout/Checkout';
-import Orders from './containers/Orders/Orders';
+import Logout from './containers/Auth/Logout/Logout';
+import * as actions from './store/Actions/index';
+import AsyncComponent from './HOC/asyncComponent';
 
-function App() {
-  return (
-    <Layout>
+const asyncCheckout = AsyncComponent(() => import('./containers/Checkout/Checkout'));
+
+const asyncOrders = AsyncComponent(() => import('./containers/Orders/Orders'));
+
+const asyncAuth = AsyncComponent(() => import('./containers/Auth/Auth'));
+
+
+
+class App extends Component {
+  componentDidMount() {
+    this.props.TryAutoSignin();
+  }
+
+  render() {
+
+    let routes = (
       <Switch>
-        <Route path="/checkout" component={Checkout} />
-        <Route path="/orders" component={Orders} />
-        <Route path="/" component={BurgerBuilder} />  
+          <Route path="/auth" component={asyncAuth} />
+          <Route path="/" component={BurgerBuilder} />  
+          <Redirect to="/" />
       </Switch>
-    </Layout>
-  );
+    );
+
+    if ( this.props.isAuth ) {
+      routes = (
+        <Switch>
+          <Route path="/checkout" component={asyncCheckout} />
+          <Route path="/orders" component={asyncOrders} />
+          <Route path="/logout" component={Logout} />
+          <Route path="/" component={BurgerBuilder} /> 
+          <Route path="/auth" component={asyncAuth} />
+          <Redirect to="/" />
+      </Switch>
+      );
+    }
+
+    return (
+      <Layout>
+        {routes}
+      </Layout>
+    )
+  }
 }
 
-export default App;
+const mapStateToProps = state => {
+  return {
+    isAuth: state.auth.token !== null
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    TryAutoSignin: () => dispatch(actions.authCheckState())
+  };
+};
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

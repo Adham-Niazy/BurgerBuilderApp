@@ -28,10 +28,10 @@ export const purchaseBurgerFailed = (error) => {
     }
 }
 
-export const purchaseBurger = (orderData) => {
+export const purchaseBurger = (orderData, token) => {
     return dispatch => {
         dispatch(purchaseBurgerStart());
-        OrderInstance.post('/orders.json', orderData)
+        OrderInstance.post('/orders.json?auth=' + token, orderData)
             .then(response => {
                 dispatch(purchaseBurgerSucces(response.data.name, orderData));
             })
@@ -61,12 +61,12 @@ export const fetchOrdersStart = () => {
     }
 }
 
-export const fetchingOrders = () => {
+export const fetchingOrders = (token, userId) => {
     return dispatch => {
         dispatch(fetchOrdersStart());
-        OrderInstance.get('/orders.json')
+        const quaryParams = '?auth=' + token + '&orderBy="userId"&equalTo="' + userId + '"';
+        OrderInstance.get('/orders.json' + quaryParams)
             .then(res => {
-                // console.log(res.data);
                 const fetchedOrders = [];
                 for (let key in res.data) {
                     fetchedOrders.push({
