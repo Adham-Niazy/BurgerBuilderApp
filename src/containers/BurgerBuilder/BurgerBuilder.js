@@ -21,13 +21,6 @@ class BurgerBuilder extends Component {
 
     componentDidMount() {
         this.props.onFetchingData();
-        // OrderInstance.get('/ingredients.json')
-        //             .then(response => {
-        //                 this.setState({ingredients: response.data})
-        //             })
-        //             .catch(error => {
-        //                 this.setState({error: true});
-        //             })
     }
 
     updatePurchaseState = Ingredient => {
